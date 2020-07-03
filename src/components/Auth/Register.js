@@ -20,7 +20,7 @@ class Register extends React.Component {
     passwordConfirmation: '',
     errors: [],
     loading: false,
-    usersRef: usersRef,
+    usersRef: firebase.database().ref('users'),
   };
 
   isFormValid = () => {
@@ -28,28 +28,18 @@ class Register extends React.Component {
     let error;
 
     if (this.isFormEmpty(this.state)) {
-      // throw error
       error = { message: 'Fill in all fields' };
       this.setState({ errors: errors.concat(error) });
       return false;
     } else if (!this.isPasswordValid(this.state)) {
-      // throw error
-      error = { message: 'Password isnt valid' };
+      error = { message: 'Password is invalid' };
       this.setState({ errors: errors.concat(error) });
       return false;
     } else {
       return true;
     }
   };
-  isPasswordValid = ({ password, passwordConfirmation }) => {
-    if (password.length < 6 || passwordConfirmation < 6) {
-      return false;
-    } else if (password !== passwordConfirmation) {
-      return false;
-    } else {
-      return true;
-    }
-  };
+
   isFormEmpty = ({ username, email, password, passwordConfirmation }) => {
     return (
       !username.length ||
@@ -57,6 +47,16 @@ class Register extends React.Component {
       !password.length ||
       !passwordConfirmation.length
     );
+  };
+
+  isPasswordValid = ({ password, passwordConfirmation }) => {
+    if (password.length < 6 || passwordConfirmation.length < 6) {
+      return false;
+    } else if (password !== passwordConfirmation) {
+      return false;
+    } else {
+      return true;
+    }
   };
 
   displayErrors = (errors) =>
@@ -83,19 +83,17 @@ class Register extends React.Component {
               )}?d=identicon`,
             })
             .then(() => {
-              // this.setState({ loading: false });
               this.saveUser(createdUser).then(() => {
                 console.log('user saved');
               });
             })
             .catch((err) => {
-              console.log(err);
+              console.error(err);
               this.setState({
                 errors: this.state.errors.concat(err),
                 loading: false,
               });
             });
-          //   this.setState({ loading: false });
         })
         .catch((err) => {
           console.error(err);
@@ -108,17 +106,10 @@ class Register extends React.Component {
   };
 
   saveUser = (createdUser) => {
-    return this.state.usersRef
-      .doc(createdUser.user.uid)
-      .set({
-        name: createdUser.user.displayName,
-        avatar: createdUser.user.photoURL,
-      })
-      .then(
-        this.setState({
-          loading: false,
-        })
-      );
+    return this.state.usersRef.child(createdUser.user.uid).set({
+      name: createdUser.user.displayName,
+      avatar: createdUser.user.photoURL,
+    });
   };
 
   handleInputError = (errors, inputName) => {
@@ -144,7 +135,7 @@ class Register extends React.Component {
         <Grid.Column style={{ maxWidth: 450 }}>
           <Header as="h1" icon color="orange" textAlign="center">
             <Icon name="puzzle piece" color="orange" />
-            Register for Elzie's Chat
+            Register for DevChat
           </Header>
           <Form onSubmit={this.handleSubmit} size="large">
             <Segment stacked>
@@ -196,8 +187,8 @@ class Register extends React.Component {
               />
 
               <Button
-                className={loading ? 'loading' : ''}
                 disabled={loading}
+                className={loading ? 'loading' : ''}
                 color="orange"
                 fluid
                 size="large"
