@@ -26,8 +26,14 @@ class DirectMessages extends React.Component {
   componentWilUnmount() {
     // window.removeEventListener('focus', this.onFocus);
     // window.removeEventListener('blur', this.onBlur);
+    this.removeListeners();
   }
 
+  removeListeners = () => {
+    this.state.usersRef.off();
+    this.state.presenceRef.off();
+    this.state.connectedRef.off();
+  };
   // onFocus = () => {
   //   console.log('this tab in focus');
   // };
